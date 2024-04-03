@@ -74,11 +74,6 @@ class _MyHomePageState extends State<MyHomePage> {
           return _buildCommandTile(index);
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddCommandDialog,
-        tooltip: 'Add Command',
-        child: Icon(Icons.add),
-      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -383,7 +378,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (type.toUpperCase() == 'CMD') {
         result = await Process.run('cmd', ['/c', command]);
       } else if (type.toUpperCase() == 'POWERSHELL') {
-        result = await Process.run('powershell', ['-Command', command]);
+        result = await Process.run('powershell', ['-Command', command], runInShell: true);
       } else {
         print('Unsupported command type: $type');
         return;
@@ -422,215 +417,215 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _openGitHubRepo() async {
-    const url = 'https://github.com/azurejoga/Aurora-Windows-Optimizer';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      print('Could not launch $url');
-    }
+void _openGitHubRepo() async {
+  const url = 'https://github.com/azurejoga/Aurora-Windows-Optimizer';
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    print('Could not launch $url');
   }
+}
 
-  void _downloadLatestVersion() async {
-    const url = 'https://github.com/azurejoga/Aurora-Windows-Optimizer/releases';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      print('Could not launch $url');
-    }
+void _downloadLatestVersion() async {
+  const url = 'https://github.com/azurejoga/Aurora-Windows-Optimizer/releases';
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    print('Could not launch $url');
   }
+}
 
-  void _createRestorePoint() {
-    // Code to create a restore point
-  }
+void _createRestorePoint() {
+  // Code to create a restore point
+}
 
-  void _restoreChanges() {
-    // Code to restore changes
-  }
+void _restoreChanges() {
+  // Code to restore changes
+}
 
-  void _showAddCommandDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Add Command'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Name',
-                    hintText: 'Enter command name',
-                  ),
+void _showAddCommandDialog() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Add Command'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  hintText: 'Enter command name',
                 ),
-                TextField(
-                  controller: _descController,
-                  decoration: InputDecoration(
-                    labelText: 'Description',
-                    hintText: 'Enter command description',
-                  ),
+              ),
+              TextField(
+                controller: _descController,
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  hintText: 'Enter command description',
                 ),
-                TextField(
-                  controller: _cmdController,
-                  decoration: InputDecoration(
-                    labelText: 'Command',
-                    hintText: 'Enter the command to be executed',
-                  ),
+              ),
+              TextField(
+                controller: _cmdController,
+                decoration: InputDecoration(
+                  labelText: 'Command',
+                  hintText: 'Enter the command to be executed',
                 ),
-                DropdownButton<String>(
-                  value: _selectedType,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedType = newValue!;
-                    });
-                  },
-                  items: <String>['CMD', 'Powershell']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  hint: Text('Select command type'),
-                ),
-              ],
-            ),
+              ),
+              DropdownButton<String>(
+                value: _selectedType,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedType = newValue!;
+                  });
+                },
+                items: <String>['CMD', 'Powershell']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                hint: Text('Select command type'),
+              ),
+            ],
           ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Add'),
-              onPressed: () {
-                _addCommand();
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showEditCommandDialog(int index) {
-    _nameController.text = _commands[index]['name'];
-    _descController.text = _commands[index]['desc'];
-    _cmdController.text = _commands[index]['cmd'];
-    _selectedType = _commands[index]['type'];
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Edit Command'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Name',
-                    hintText: 'Enter command name',
-                  ),
-                ),
-                TextField(
-                  controller: _descController,
-                  decoration: InputDecoration(
-                    labelText: 'Description',
-                    hintText: 'Enter command description',
-                  ),
-                ),
-                TextField(
-                  controller: _cmdController,
-                  decoration: InputDecoration(
-                    labelText: 'Command',
-                    hintText: 'Enter the command to be executed',
-                  ),
-                ),
-                DropdownButton<String>(
-                  value: _selectedType,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedType = newValue!;
-                    });
-                  },
-                  items: <String>['CMD', 'Powershell']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  hint: Text('Select command type'),
-                ),
-              ],
-            ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
           ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Save'),
-              onPressed: () {
-                _editCommand(index);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+          TextButton(
+            child: Text('Add'),
+            onPressed: () {
+              _addCommand();
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
-  void _editCommand(int index) {
-    setState(() {
-      _commands[index] = {
-        "name": _nameController.text,
-        "desc": _descController.text,
-        "cmd": _cmdController.text,
-        "type": _selectedType,
-      };
-      _nameController.clear();
-      _descController.clear();
-      _cmdController.clear();
-      _selectedType = 'CMD';
-    });
-  }
+void _showEditCommandDialog(int index) {
+  _nameController.text = _commands[index]['name'];
+  _descController.text = _commands[index]['desc'];
+  _cmdController.text = _commands[index]['cmd'];
+  _selectedType = _commands[index]['type'];
 
-  void _removeCommand(int index) {
-    setState(() {
-      _commands.removeAt(index);
-    });
-  }
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Edit Command'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  hintText: 'Enter command name',
+                ),
+              ),
+              TextField(
+                controller: _descController,
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  hintText: 'Enter command description',
+                ),
+              ),
+              TextField(
+                controller: _cmdController,
+                decoration: InputDecoration(
+                  labelText: 'Command',
+                  hintText: 'Enter the command to be executed',
+                ),
+              ),
+              DropdownButton<String>(
+                value: _selectedType,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedType = newValue!;
+                  });
+                },
+                items: <String>['CMD', 'Powershell']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                hint: Text('Select command type'),
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text('Save'),
+            onPressed: () {
+              _editCommand(index);
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
-  void _moveToTop(int index) {
-    setState(() {
-      if (index > 0) {
-        var item = _commands.removeAt(index);
-        _commands.insert(0, item);
-      }
-    });
-  }
+void _editCommand(int index) {
+  setState(() {
+    _commands[index] = {
+      "name": _nameController.text,
+      "desc": _descController.text,
+      "cmd": _cmdController.text,
+      "type": _selectedType,
+    };
+    _nameController.clear();
+    _descController.clear();
+    _cmdController.clear();
+    _selectedType = 'CMD';
+  });
+}
 
-  void _moveToBottom(int index) {
-    setState(() {
-      if (index < _commands.length - 1) {
-        var item = _commands.removeAt(index);
-        _commands.add(item);
-      }
-    });
-  }
+void _removeCommand(int index) {
+  setState(() {
+    _commands.removeAt(index);
+  });
+}
+
+void _moveToTop(int index) {
+  setState(() {
+    if (index > 0) {
+      var item = _commands.removeAt(index);
+      _commands.insert(0, item);
+    }
+  });
+}
+
+void _moveToBottom(int index) {
+  setState(() {
+    if (index < _commands.length - 1) {
+      var item = _commands.removeAt(index);
+      _commands.add(item);
+    }
+  });
+}
 }
 
 class ThemeProvider with ChangeNotifier {
