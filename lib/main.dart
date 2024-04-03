@@ -386,14 +386,24 @@ class _MyHomePageState extends State<MyHomePage> {
         return AlertDialog(
           title: Text('Command Result'),
           content: SingleChildScrollView(
-            child: Text(output),
+            child: TextFormField(
+              readOnly: true,
+              initialValue: output,
+              decoration: InputDecoration(
+                labelText: 'Resultado do comando',
+              ),
+              maxLines: null,
+            ),
           ),
           actions: <Widget>[
-            TextButton(
-              child: Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+            Semantics(
+              label: 'Fechar',
+              child: TextButton(
+                child: Text('Close'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
             ),
           ],
         );
