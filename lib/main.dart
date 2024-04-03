@@ -1,21 +1,29 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'theme_provider.dart'; // Certifique-se de que o path para o theme_provider.dart está correto
 import 'package:url_launcher/url_launcher.dart';
 
 void main() {
-  runApp(AuroraApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: AuroraApp(),
+    ),
+  );
 }
 
 class AuroraApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Aurora, Windows Optimizer™',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Aurora, Windows Optimizer™'),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Aurora, Windows Optimizer™',
+          theme: themeProvider.themeData,
+          home: MyHomePage(title: 'Aurora, Windows Optimizer™'),
+        );
+      },
     );
   }
 }
@@ -49,19 +57,13 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         actions: [
           Semantics(
-            label: 'Abrir menu principal',
+            label: 'Abrir menu de navegação',
             child: IconButton(
               icon: Icon(Icons.menu),
+              tooltip: 'abrir menu de navegação',
               onPressed: () {
                 Scaffold.of(context).openDrawer();
               },
-            ),
-          ),
-          Semantics(
-            label: 'Verificar atualizações',
-            child: IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: _checkUpdates,
             ),
           ),
         ],
@@ -81,15 +83,18 @@ class _MyHomePageState extends State<MyHomePage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'Aurora Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
+            Hero(
+              tag: 'drawerHeader',
+              child: DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Text(
+                  'Aurora Menu',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
                 ),
               ),
             ),
@@ -114,6 +119,18 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               trailing: Semantics(
                 label: 'Ir para o menu de ferramentas',
+                child: Icon(Icons.arrow_forward),
+              ),
+            ),
+            ListTile(
+              title: Text('Configurações'),
+              leading: Icon(Icons.settings),
+              onTap: () {
+                Navigator.pop(context);
+                _showSettingsDialog();
+              },
+              trailing: Semantics(
+                label: 'Ir para o menu de configurações',
                 child: Icon(Icons.arrow_forward),
               ),
             ),
@@ -179,8 +196,14 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
       child: ListTile(
-        title: Text(_commands[index]['name']),
-        subtitle: Text(_commands[index]['desc']),
+        title: Semantics(
+          label: 'Nome do Comando',
+          child: Text(_commands[index]['name']),
+        ),
+        subtitle: Semantics(
+          label: 'Descrição do Comando',
+          child: Text(_commands[index]['desc']),
+        ),
         onTap: () {
           _runCommand(_commands[index]['cmd'], _commands[index]['type']);
         },
@@ -268,77 +291,75 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _showAddCommandDialog() {
+  void _showSettingsDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Add Command'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Nome',
-                    hintText: 'Digite o nome do comando',
-                  ),
-                ),
-                TextField(
-                  controller: _descController,
-                  decoration: InputDecoration(
-                    labelText: 'Descrição',
-                    hintText: 'Digite a descrição do comando',
-                  ),
-                ),
-                TextField(
-                  controller: _cmdController,
-                  decoration: InputDecoration(
-                    labelText: 'Comando',
-                    hintText: 'Digite o comando a ser executado',
-                  ),
-                ),
-                DropdownButton<String>(
-                  value: _selectedType,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedType = newValue!;
-                    });
-                  },
-                  items: <String>['CMD', 'Powershell']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  hint: Semantics(
-                    label: 'Selecione o tipo de comando',
-                    child: Text('Selecione o tipo de comando'),
-                  ),
-                ),
-              ],
-            ),
+          title: Text('Settings'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                title: Text('Tema do Aplicativo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showThemeDialog();
+                },
+              ),
+              ListTile(
+                title: Text('Option 1'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Action for Option 1
+                },
+              ),
+              ListTile(
+                title: Text('Option 2'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Action for Option 2
+                },
+              ),
+            ],
           ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Adicionar'),
-              onPressed: () {
-                _addCommand();
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
         );
       },
     );
+  }
+
+  void _showThemeDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Selecione o Tema'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                title: Text('Tema Claro'),
+                onTap: () {
+                  _changeTheme(ThemeData.light());
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                title: Text('Tema Escuro'),
+                onTap: () {
+                  _changeTheme(ThemeData.dark());
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _changeTheme(ThemeData theme) {
+    Provider.of<ThemeProvider>(context, listen: false).setTheme(theme);
   }
 
   void _addCommand() {
@@ -386,24 +407,14 @@ class _MyHomePageState extends State<MyHomePage> {
         return AlertDialog(
           title: Text('Command Result'),
           content: SingleChildScrollView(
-            child: TextFormField(
-              readOnly: true,
-              initialValue: output,
-              decoration: InputDecoration(
-                labelText: 'Resultado do comando',
-              ),
-              maxLines: null,
-            ),
+            child: Text(output),
           ),
           actions: <Widget>[
-            Semantics(
-              label: 'Fechar',
-              child: TextButton(
-                child: Text('Close'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
           ],
         );
@@ -429,56 +440,20 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _createRestorePoint() async {
-    String description = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Create Restore Point'),
-          content: TextField(
-            decoration: InputDecoration(labelText: 'Description'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Criar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-
-    // Create restore point using description
+  void _createRestorePoint() {
+    // Code to create a restore point
   }
 
   void _restoreChanges() {
-    // Restore system changes
+    // Code to restore changes
   }
 
-  void _checkUpdates() async {
-    // Check for updates on GitHub repository
-    // Display dialog with update information if available
-  }
-
-  void _showEditCommandDialog(int index) {
-    _nameController.text = _commands[index]['name'];
-    _descController.text = _commands[index]['desc'];
-    _cmdController.text = _commands[index]['cmd'];
-    _selectedType = _commands[index]['type'];
-
+  void _showAddCommandDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Editar Comando'),
+          title: Text('Add Command'),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -486,22 +461,22 @@ class _MyHomePageState extends State<MyHomePage> {
                 TextField(
                   controller: _nameController,
                   decoration: InputDecoration(
-                    labelText: 'Nome',
-                    hintText: 'Digite o nome do comando',
+                    labelText: 'Name',
+                    hintText: 'Enter command name',
                   ),
                 ),
                 TextField(
                   controller: _descController,
                   decoration: InputDecoration(
-                    labelText: 'Descrição',
-                    hintText: 'Digite a descrição do comando',
+                    labelText: 'Description',
+                    hintText: 'Enter command description',
                   ),
                 ),
                 TextField(
                   controller: _cmdController,
                   decoration: InputDecoration(
-                    labelText: 'Comando',
-                    hintText: 'Digite o comando a ser executado',
+                    labelText: 'Command',
+                    hintText: 'Enter the command to be executed',
                   ),
                 ),
                 DropdownButton<String>(
@@ -518,23 +493,95 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: Text(value),
                     );
                   }).toList(),
-                  hint: Semantics(
-                    label: 'Selecione o tipo de comando',
-                    child: Text('Selecione o tipo de comando'),
-                  ),
+                  hint: Text('Select command type'),
                 ),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancelar'),
+              child: Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Salvar'),
+              child: Text('Add'),
+              onPressed: () {
+                _addCommand();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showEditCommandDialog(int index) {
+    _nameController.text = _commands[index]['name'];
+    _descController.text = _commands[index]['desc'];
+    _cmdController.text = _commands[index]['cmd'];
+    _selectedType = _commands[index]['type'];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit Command'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    hintText: 'Enter command name',
+                  ),
+                ),
+                TextField(
+                  controller: _descController,
+                  decoration: InputDecoration(
+                    labelText: 'Description',
+                    hintText: 'Enter command description',
+                  ),
+                ),
+                TextField(
+                  controller: _cmdController,
+                  decoration: InputDecoration(
+                    labelText: 'Command',
+                    hintText: 'Enter the command to be executed',
+                  ),
+                ),
+                DropdownButton<String>(
+                  value: _selectedType,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedType = newValue!;
+                    });
+                  },
+                  items: <String>['CMD', 'Powershell']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  hint: Text('Select command type'),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Save'),
               onPressed: () {
                 _editCommand(index);
                 Navigator.of(context).pop();
@@ -583,5 +630,16 @@ class _MyHomePageState extends State<MyHomePage> {
         _commands.add(item);
       }
     });
+  }
+}
+
+class ThemeProvider with ChangeNotifier {
+  ThemeData _themeData = ThemeData.light();
+
+  ThemeData get themeData => _themeData;
+
+  void setTheme(ThemeData themeData) {
+    _themeData = themeData;
+    notifyListeners();
   }
 }
